@@ -4,7 +4,7 @@ import { app } from "./app.js";
 mongoDB()
   .then(() => {
     app.listen(process.env.PORT || 3000, () => {
-      console.log(`app is listing on port number ${process.env.PORT}  `);
+      console.log(`app is listing on port number ${process.env.PORT}`);
     });
   })
   .catch((err) => {

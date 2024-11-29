@@ -16,13 +16,15 @@ export const verifyJwt = async (req, _, next) => {
         const token = authToken.split(" ")[1];
         const decode = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
         const user = await User.findById(decode._id)
+
         if (!user) {
             throw new ErrorAPI(500, "Did Not Get any User")
         }
         req.user = user
         next()
     } catch (error) {
-        next(error)
+        next(new ErrorAPI(403, error.message))
+
     }
 };
 

@@ -108,13 +108,21 @@ const userLogin = AsyncWrap(async (req, res) => {
     );
 });
 
+//?get currentUser Api
+const getCurrentUser = AsyncWrap(async (req, res) => {
+  const userId = req.user._id
+  const user = await User.findById(userId).select('-password -refreshToken')
+  console.log(user)
+  res.status(200).json(new ResponseAPI(200, user, "User Found"))
+})
+
 //*new AccessToken Api
 const getAccessToken = AsyncWrap(async (req, res) => {
   const refreshToken =
     req.cookies.refreshToken || req.body.refreshToken;
 
   if (!refreshToken) {
-    throw new ErrorAPI(401, "Can not get refresh Token")
+    throw new ErrorAPI(403, "Can not get refresh Token")
   }
   const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
   if (!payload._id) {
@@ -167,6 +175,7 @@ const userLogOut = AsyncWrap(async (req, res) => {
 const updateUserInfo = AsyncWrap(async (req, res) => {
   const userId = req.user._id;
   const { username, fullname, email } = req.body;
+  console.log(username)
 
   const newUser = {
     username: username,
@@ -174,11 +183,14 @@ const updateUserInfo = AsyncWrap(async (req, res) => {
     email: email,
   }
 
-  const updatedUser = await User.findByIdAndUpdate({ _id: userId }, { ...newUser })
+  console.log(userId)
+
+  const updatedUser = await User.findByIdAndUpdate({ _id: userId }, { ...newUser }, { new: true }).select('-password -refreshToken')
+
   if (!updatedUser) {
     throw new ErrorAPI(500, "User not updated")
   }
-  res.status(200).json(new ResponseAPI(200, null, "UserInfo Updated"))
+  res.status(200).json(new ResponseAPI(200, updatedUser, "UserInfo Updated"))
 })
 
 //% Update Avatar
@@ -187,6 +199,7 @@ const updateAvatar = AsyncWrap(async (req, res) => {
     // get sended file
     const id = req.user._id;
     const avatarPath = req.file.path;
+
     if (!avatarPath) {
       throw new ErrorAPI(404, "Did'nt got Profile Picture")
     }
@@ -197,12 +210,14 @@ const updateAvatar = AsyncWrap(async (req, res) => {
     }
 
     // find the user
-    const user = await User.findByIdAndUpdate({ _id: id }, { "avatar": avatar.url })
+    const user = await User.findByIdAndUpdate({ _id: id }, { "avatar": avatar.url }, { new: true }).select('-password -refreshToken')
+
+    console.log(user.avatar)
     if (!user) {
       throw new ErrorAPI(503, "Profile Picture Could'nt be Uploaded In DB")
     }
 
-    res.status(200).json(new ResponseAPI(200, null, "Profile Picture uploaded"))
+    res.status(200).json(new ResponseAPI(200, user, "Profile Picture uploaded"))
 
   } catch (error) {
     throw new ErrorAPI(500, error.message)
@@ -224,13 +239,13 @@ const updateCover = AsyncWrap(async (req, res) => {
     throw new ErrorAPI(503, "Cover Image Could'nt be Uploaded")
   }
   // find the user
-  const user = await User.findByIdAndUpdate({ _id: id }, { "coverImage": cover.url })
+  const user = await User.findByIdAndUpdate({ _id: id }, { "coverImage": cover.url }, { new: true }).select('-password -refreshToken')
   if (!user) {
     throw new ErrorAPI(503, "Cover Image Could'nt be Uploaded In DB")
   }
-  res.status(200).json(new ResponseAPI(200, null, "Cover Image uploaded"))
+  res.status(200).json(new ResponseAPI(200, user, "Cover Image uploaded"))
 
 })
 
 
-export { userRegistration, userLogin, getAccessToken, getUsers, userLogOut, updateUserInfo, updateAvatar, updateCover };
+export { userRegistration, userLogin, getAccessToken, getUsers, userLogOut, updateUserInfo, updateAvatar, updateCover, getCurrentUser };
