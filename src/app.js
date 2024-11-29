@@ -10,6 +10,11 @@ import EventEmmiter from "events"
 import { ErrorAPI } from './utils/ErrorAPI.js';
 const app = express();
 
+app.use(cors({
+  origin: 'http://localhost:5173', // Allow requests from your frontend
+  credentials: true,
+}));
+
 
 //!logEvent Emmiter
 // --------------------------------
@@ -17,7 +22,10 @@ class Emmiter extends EventEmmiter { }
 const myEmitter = new Emmiter()
 myEmitter.on("log", (msg, filename) => logEvent(msg, filename))
 // --------------------------------
-app.use(cors())
+app.get("/", (req, res) => {
+  res.send("server is working")
+
+})
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
 app.use(express.json({ limit: '16kb' }));
 app.use(cookieParser());
@@ -26,10 +34,7 @@ app.use("/api/v1/authors", authorRouter)
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/chapters', chapterRouter);
 
-app.get("/", (req, res) => {
-  res.send("server is working")
 
-})
 
 
 app.use((err, req, res, next) => {
