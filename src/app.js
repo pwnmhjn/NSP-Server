@@ -11,7 +11,7 @@ import { ErrorAPI } from './utils/ErrorAPI.js';
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:5173', // Allow requests from your frontend
+  origin: ['http://localhost:5173', "https://nsp-client.vercel.app"],
   credentials: true,
 }));
 
